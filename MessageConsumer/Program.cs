@@ -3,6 +3,8 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace MessageConsumer
 {
@@ -54,15 +56,22 @@ namespace MessageConsumer
                         {
                             // Попробуем десериализовать сообщение
                             // в объект объявленный ниже
-                            var requestMessage = JsonConvert.DeserializeObject<ServiceRequestMessage>(messageString);
-                            Console.WriteLine($"Broken item: {requestMessage.ItemName}{Environment.NewLine}Problem description: {requestMessage.Problem}");
+                            var requestMessage =
+                                JsonConvert.
+                                DeserializeObject<ServiceRequestMessage>
+                                (messageString);
+
+
+                            Console.WriteLine($"Broken item: {requestMessage.ItemName}" +
+                                $"{Environment.NewLine}Problem description: " +
+                                $"{requestMessage.Problem}" + Environment.NewLine);
                             // Десериализация прошла успешно
                             // Удалим сообщение из очереди
                             await queue.DeleteMessageAsync(message);
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine("Tried to process bad message");
+                            Console.WriteLine("[Exception] Tried to process bad message\n");
                             // Десериализация прошла не успешно
                             // Сообщение вернётся в очередь само через 5 минут
                         }
@@ -72,6 +81,32 @@ namespace MessageConsumer
                     await Task.Delay(TimeSpan.FromSeconds(10));
             }
         }
+
+        //private static ServiceRequestMessage DeserializationOfObjects(string messageString)
+        //{
+        //    Console.WriteLine("---");
+        //    Console.WriteLine(messageString);
+        //    if (messageString.StartsWith("<?xml"))
+        //    {
+        //        XmlDocument xml = new XmlDocument();
+        //        xml.LoadXml(messageString);
+
+        //        XElement xElement;
+        //        using (var reader = new XmlNodeReader(xml))
+        //        {
+        //            xElement = XElement.Load(reader);
+        //        }
+
+        //        messageString = JsonConvert.SerializeXNode(xElement);
+
+        //        Console.WriteLine("Конвертирование из xml в json:");
+        //        Console.WriteLine(messageString);
+        //    }
+            
+            
+        //    return JsonConvert.
+        //        DeserializeObject<ServiceRequestMessage>(messageString);
+        //}
     }
 
     /// <summary>
